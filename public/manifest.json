@@ -1,0 +1,10 @@
+{
+  "name": "hyderabad.rent",
+  "short_name": "hyd.rent",
+  "description": "What Hyderabadis actually pay in rent",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d0d1a",
+  "theme_color": "#7c3aed",
+  "icons": []
+}
