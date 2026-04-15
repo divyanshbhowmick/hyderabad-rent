@@ -14,7 +14,7 @@
   width: 100%;
   padding: 14px;
   background: var(--accent);
-  color: #fff;
+  color: var(--text);
   font-size: 15px;
   font-weight: 600;
   text-align: center;
@@ -24,5 +24,5 @@
 }
 
 .cta:hover {
-  background: #6d28d9;
+  background: var(--accent-dark);
 }

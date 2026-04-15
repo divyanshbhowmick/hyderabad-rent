@@ -10,8 +10,12 @@ export function CounterBar() {
   return (
     <div className={styles.counterBar}>
       <span className={styles.hint}>tap map to pin rent</span>
-      <span className={styles.sep}>·</span>
-      <span className={styles.total}>{formatTotal(totalRent)} pinned</span>
+      {pins.length > 0 && (
+        <>
+          <span className={styles.sep}>·</span>
+          <span className={styles.total}>{formatTotal(totalRent)} pinned</span>
+        </>
+      )}
       <span className={styles.sep}>·</span>
       <span className={styles.count}>{pins.length} pins</span>
     </div>
