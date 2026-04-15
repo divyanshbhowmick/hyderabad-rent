@@ -38,7 +38,7 @@ describe('OnboardingModal', () => {
 
   it('closes on Escape without setting localStorage', () => {
     render(<OnboardingModal />)
-    fireEvent.keyDown(screen.getByRole('presentation'), { key: 'Escape' })
+    fireEvent.keyDown(document, { key: 'Escape' })
     expect(localStorage.getItem('hyd_onboarded')).toBeNull()
     expect(useUIStore.getState().activeModal).toBeNull()
   })

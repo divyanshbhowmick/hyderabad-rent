@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useUIStore } from '../../store/useUIStore'
 import styles from './OnboardingModal.module.css'
 
@@ -6,28 +6,40 @@ const ONBOARDED_KEY = 'hyd_onboarded'
 
 export function OnboardingModal() {
   const [step, setStep] = useState(1)
+  const [copied, setCopied] = useState(false)
   const closeModal = useUIStore(s => s.closeModal)
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') closeModal()
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [closeModal])
 
   function finish() {
     localStorage.setItem(ONBOARDED_KEY, '1')
     closeModal()
   }
 
-  function handleEscape(e: React.KeyboardEvent) {
-    if (e.key === 'Escape') closeModal()
-  }
-
   async function handleShare() {
     const url = 'https://hyderabad.rent'
-    if (navigator.share) {
-      await navigator.share({ title: 'hyderabad.rent', url })
-    } else {
-      await navigator.clipboard.writeText(url)
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: 'hyderabad.rent', url })
+      } else {
+        await navigator.clipboard.writeText(url)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      }
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') return
+      console.error('Share failed', err)
     }
   }
 
   return (
-    <div className={styles.overlay} onKeyDown={handleEscape} tabIndex={-1} role="presentation">
+    <div className={styles.overlay} role="presentation">
       <div className={styles.card}>
         {/* Step indicator */}
         <div className={styles.steps}>
@@ -58,7 +70,7 @@ export function OnboardingModal() {
               Let's go →
             </button>
             <button className={styles.shareBtn} onClick={handleShare}>
-              Share with a friend ↗
+              {copied ? 'Copied! ✓' : 'Share with a friend ↗'}
             </button>
           </>
         )}
