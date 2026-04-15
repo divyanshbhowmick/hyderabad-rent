@@ -1,0 +1,37 @@
+/* src/components/Layout/CounterBar.module.css */
+.counterBar {
+  position: fixed;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.hint {
+  color: var(--accent-light);
+  font-weight: 500;
+}
+
+.sep {
+  color: var(--text-dim);
+}
+
+.total {
+  color: var(--text);
+}
+
+.count {
+  color: var(--text);
+  font-weight: 600;
+}
