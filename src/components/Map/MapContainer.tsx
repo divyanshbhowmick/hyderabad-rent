@@ -18,10 +18,6 @@ export function MapContainer({ token }: MapContainerProps) {
     loadPins()
   }, [loadPins])
 
-  // Expose mapRef via a data attribute so App.tsx can access the map instance
-  // via mapRef if needed (passed as prop or via context in future tasks)
-  void mapRef
-
   return (
     <div ref={containerRef} className={styles.map} />
   )

@@ -1,5 +1,5 @@
 // src/hooks/useMap.ts
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useMemo } from 'react'
 import mapboxgl from 'mapbox-gl'
 import { usePinStore } from '../store/usePinStore'
 import { useFilterStore } from '../store/useFilterStore'
@@ -8,7 +8,7 @@ import { createPinElement } from '../components/Map/PinMarker'
 
 export function useMap(containerRef: React.RefObject<HTMLDivElement>, token: string) {
   const mapRef = useRef<mapboxgl.Map | null>(null)
-  const markersRef = useRef<Map<string, mapboxgl.Marker>>(new Map())
+  const markersRef = useRef<Map<string, { marker: mapboxgl.Marker; cleanup: () => void }>>(new Map())
 
   const pins = usePinStore(s => s.pins)
   const filters = useFilterStore(s => s.filters)
@@ -17,7 +17,7 @@ export function useMap(containerRef: React.RefObject<HTMLDivElement>, token: str
   const setSelectedPin = useUIStore(s => s.setSelectedPin)
 
   // Filter pins
-  const visiblePins = pins.filter(pin => {
+  const visiblePins = useMemo(() => pins.filter(pin => {
     if (pin.reportCount >= 3) return false
     if (filters.locality !== null && pin.locality !== filters.locality) return false
     if (filters.bhk.length > 0 && !filters.bhk.includes(pin.bhk)) return false
@@ -25,7 +25,7 @@ export function useMap(containerRef: React.RefObject<HTMLDivElement>, token: str
     if (filters.furnished.length > 0 && !filters.furnished.includes(pin.furnished)) return false
     if (filters.gated !== null && pin.gated !== filters.gated) return false
     return true
-  })
+  }), [pins, filters])
 
   // Initialize map
   useEffect(() => {
@@ -50,10 +50,15 @@ export function useMap(containerRef: React.RefObject<HTMLDivElement>, token: str
     mapRef.current = map
 
     return () => {
+      markersRef.current.forEach(({ marker, cleanup }) => {
+        cleanup()
+        marker.remove()
+      })
+      markersRef.current.clear()
       map.remove()
       mapRef.current = null
     }
-  }, [containerRef, token, setPendingLatLng, openModal])
+  }, [token, setPendingLatLng, openModal])
 
   // Sync markers with visiblePins
   useEffect(() => {
@@ -63,8 +68,9 @@ export function useMap(containerRef: React.RefObject<HTMLDivElement>, token: str
     const visibleIds = new Set(visiblePins.map(p => p.id))
 
     // Remove markers no longer visible
-    markersRef.current.forEach((marker, id) => {
+    markersRef.current.forEach(({ marker, cleanup }, id) => {
       if (!visibleIds.has(id)) {
+        cleanup()
         marker.remove()
         markersRef.current.delete(id)
       }
@@ -74,7 +80,7 @@ export function useMap(containerRef: React.RefObject<HTMLDivElement>, token: str
     visiblePins.forEach(pin => {
       if (markersRef.current.has(pin.id)) return
 
-      const el = createPinElement(pin, () => {
+      const { el, cleanup } = createPinElement(pin, () => {
         setSelectedPin(pin)
         openModal('pinDetail')
       })
@@ -83,7 +89,7 @@ export function useMap(containerRef: React.RefObject<HTMLDivElement>, token: str
         .setLngLat([pin.lng, pin.lat])
         .addTo(map)
 
-      markersRef.current.set(pin.id, marker)
+      markersRef.current.set(pin.id, { marker, cleanup })
     })
   }, [visiblePins, setSelectedPin, openModal])
 
