@@ -20,6 +20,9 @@ export interface Pin {
   reportCount: number
   createdAt: string   // ISO string
   locality?: string
+  sqft?: number
+  verified: boolean
+  isSeed: boolean
 }
 
 export interface PinSubmission {
