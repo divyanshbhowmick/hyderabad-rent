@@ -75,8 +75,12 @@ export function PinDetailModal() {
           </div>
         </div>
 
-        {pin.locality && (
-          <p className={styles.locality}>📍 {pin.locality}</p>
+        {(pin.locality || pin.verified) && (
+          <p className={styles.locality}>
+            {pin.locality && <>📍 {pin.locality}</>}
+            {pin.locality && pin.verified && ' '}
+            {pin.verified && <span className={styles.verifiedBadge}>Verified ✓</span>}
+          </p>
         )}
 
         <p className={styles.timestamp}>pinned {formatDaysAgo(pin.createdAt)}</p>

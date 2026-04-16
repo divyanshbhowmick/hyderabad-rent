@@ -29,7 +29,7 @@ export function createPinElement(pin: Pin, onClick: () => void): { el: HTMLEleme
     'line-height: 1.4',
     'transform-origin: bottom center',
   ].join(';')
-  pill.textContent = formatRent(pin.rent)
+  pill.textContent = pin.verified ? `${formatRent(pin.rent)} ✓` : formatRent(pin.rent)
   el.appendChild(pill)
 
   const handleClick = (e: MouseEvent) => { e.stopPropagation(); onClick() }
