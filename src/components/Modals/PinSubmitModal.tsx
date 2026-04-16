@@ -1,5 +1,5 @@
 // src/components/Modals/PinSubmitModal.tsx
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { usePinStore } from '../../store/usePinStore'
 import { useUIStore } from '../../store/useUIStore'
 import { LOCALITIES } from '../../data/localities'
@@ -29,6 +29,13 @@ export function PinSubmitModal() {
   const [form, setForm] = useState<FormState>(INITIAL)
   const [errors, setErrors] = useState<string[]>([])
   const [success, setSuccess] = useState(false)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current)
+    }
+  }, [])
 
   const pendingLatLng = useUIStore(s => s.pendingLatLng)
   const closeModal = useUIStore(s => s.closeModal)
@@ -67,9 +74,10 @@ export function PinSubmitModal() {
       depositMonths: Number(form.depositMonths),
       pets: form.pets!,
       available: form.available!,
+      locality: form.locality || undefined,
     })
     setSuccess(true)
-    setTimeout(() => closeModal(), 1500)
+    timerRef.current = setTimeout(() => closeModal(), 1500)
   }
 
   if (success) {
@@ -136,9 +144,10 @@ export function PinSubmitModal() {
             {([1, 2, 3, 4, 5] as BHK[]).map(n => (
               <button
                 key={n}
+                type="button"
+                aria-pressed={form.bhk === n}
                 className={form.bhk === n ? styles.toggleActive : styles.toggle}
                 onClick={() => setForm(f => ({ ...f, bhk: n }))}
-                type="button"
               >
                 {n}BHK
               </button>
@@ -153,9 +162,10 @@ export function PinSubmitModal() {
             {(['furnished', 'semi', 'unfurnished'] as Furnished[]).map(v => (
               <button
                 key={v}
+                type="button"
+                aria-pressed={form.furnished === v}
                 className={form.furnished === v ? styles.toggleActive : styles.toggle}
                 onClick={() => setForm(f => ({ ...f, furnished: v }))}
-                type="button"
               >
                 {v === 'semi' ? 'Semi' : v.charAt(0).toUpperCase() + v.slice(1)}
               </button>
@@ -167,8 +177,8 @@ export function PinSubmitModal() {
         <div className={styles.field}>
           <label className={styles.label}>Gated society?</label>
           <div className={styles.toggleGroup}>
-            <button className={form.gated === true ? styles.toggleActive : styles.toggle} onClick={() => setForm(f => ({ ...f, gated: true }))} type="button">Yes</button>
-            <button className={form.gated === false ? styles.toggleActive : styles.toggle} onClick={() => setForm(f => ({ ...f, gated: false }))} type="button">No</button>
+            <button type="button" aria-pressed={form.gated === true} className={form.gated === true ? styles.toggleActive : styles.toggle} onClick={() => setForm(f => ({ ...f, gated: true }))}>Yes</button>
+            <button type="button" aria-pressed={form.gated === false} className={form.gated === false ? styles.toggleActive : styles.toggle} onClick={() => setForm(f => ({ ...f, gated: false }))}>No</button>
           </div>
         </div>
 
@@ -179,9 +189,10 @@ export function PinSubmitModal() {
             {(['included', 'excluded'] as Maintenance[]).map(v => (
               <button
                 key={v}
+                type="button"
+                aria-pressed={form.maintenance === v}
                 className={form.maintenance === v ? styles.toggleActive : styles.toggle}
                 onClick={() => setForm(f => ({ ...f, maintenance: v }))}
-                type="button"
               >
                 {v.charAt(0).toUpperCase() + v.slice(1)}
               </button>
@@ -196,9 +207,10 @@ export function PinSubmitModal() {
             {(['family', 'bachelor', 'any'] as TenantType[]).map(v => (
               <button
                 key={v}
+                type="button"
+                aria-pressed={form.tenantType === v}
                 className={form.tenantType === v ? styles.toggleActive : styles.toggle}
                 onClick={() => setForm(f => ({ ...f, tenantType: v }))}
-                type="button"
               >
                 {v.charAt(0).toUpperCase() + v.slice(1)}
               </button>
@@ -223,8 +235,8 @@ export function PinSubmitModal() {
         <div className={styles.field}>
           <label className={styles.label}>Pets allowed?</label>
           <div className={styles.toggleGroup}>
-            <button className={form.pets === true ? styles.toggleActive : styles.toggle} onClick={() => setForm(f => ({ ...f, pets: true }))} type="button">Yes</button>
-            <button className={form.pets === false ? styles.toggleActive : styles.toggle} onClick={() => setForm(f => ({ ...f, pets: false }))} type="button">No</button>
+            <button type="button" aria-pressed={form.pets === true} className={form.pets === true ? styles.toggleActive : styles.toggle} onClick={() => setForm(f => ({ ...f, pets: true }))}>Yes</button>
+            <button type="button" aria-pressed={form.pets === false} className={form.pets === false ? styles.toggleActive : styles.toggle} onClick={() => setForm(f => ({ ...f, pets: false }))}>No</button>
           </div>
         </div>
 
@@ -232,8 +244,8 @@ export function PinSubmitModal() {
         <div className={styles.field}>
           <label className={styles.label}>Availability</label>
           <div className={styles.toggleGroup}>
-            <button className={form.available === true ? styles.toggleActive : styles.toggle} onClick={() => setForm(f => ({ ...f, available: true }))} type="button">Available</button>
-            <button className={form.available === false ? styles.toggleActive : styles.toggle} onClick={() => setForm(f => ({ ...f, available: false }))} type="button">Not available</button>
+            <button type="button" aria-pressed={form.available === true} className={form.available === true ? styles.toggleActive : styles.toggle} onClick={() => setForm(f => ({ ...f, available: true }))}>Available</button>
+            <button type="button" aria-pressed={form.available === false} className={form.available === false ? styles.toggleActive : styles.toggle} onClick={() => setForm(f => ({ ...f, available: false }))}>Not available</button>
           </div>
         </div>
 

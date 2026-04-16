@@ -34,6 +34,7 @@ export interface PinSubmission {
   depositMonths: number
   pets: boolean
   available: boolean
+  locality?: string
 }
 
 export interface FilterState {

@@ -76,4 +76,15 @@ describe('PinSubmitModal', () => {
     fireEvent.click(screen.getByText('Cancel'))
     expect(useUIStore.getState().activeModal).toBeNull()
   })
+
+  it('auto-closes after 1500ms', () => {
+    vi.useFakeTimers()
+    render(<PinSubmitModal />)
+    fillValidForm()
+    fireEvent.click(screen.getByText('Pin rent'))
+    expect(useUIStore.getState().activeModal).toBe('pinSubmit') // not closed yet
+    vi.advanceTimersByTime(1500)
+    expect(useUIStore.getState().activeModal).toBeNull()
+    vi.useRealTimers()
+  })
 })
