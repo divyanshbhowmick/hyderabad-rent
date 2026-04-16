@@ -6,6 +6,10 @@ import { useFilterStore } from '../store/useFilterStore'
 import { useUIStore } from '../store/useUIStore'
 import { createPinElement } from '../components/Map/PinMarker'
 
+// Module-level map registry for GPS access from App.tsx
+let _mapInstance: mapboxgl.Map | null = null
+export function getMap(): mapboxgl.Map | null { return _mapInstance }
+
 export function useMap(containerRef: React.RefObject<HTMLDivElement>, token: string) {
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const markersRef = useRef<Map<string, { marker: mapboxgl.Marker; cleanup: () => void }>>(new Map())
@@ -47,6 +51,7 @@ export function useMap(containerRef: React.RefObject<HTMLDivElement>, token: str
       openModal('pinSubmit')
     })
 
+    _mapInstance = map
     mapRef.current = map
 
     return () => {
@@ -57,6 +62,7 @@ export function useMap(containerRef: React.RefObject<HTMLDivElement>, token: str
       markersRef.current.clear()
       map.remove()
       mapRef.current = null
+      _mapInstance = null
     }
   }, [token, setPendingLatLng, openModal])
 
