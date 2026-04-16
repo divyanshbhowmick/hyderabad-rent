@@ -10,6 +10,7 @@ import { OnboardingModal, hasOnboarded } from './components/Modals/OnboardingMod
 import { PinSubmitModal } from './components/Modals/PinSubmitModal'
 import { PinDetailModal } from './components/Modals/PinDetailModal'
 import { FilterPanel } from './components/Modals/FilterPanel'
+import { EmailClaimModal } from './components/Modals/EmailClaimModal'
 import { getMap } from './hooks/useMap'
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
@@ -82,6 +83,7 @@ export default function App() {
       {activeModal === 'pinSubmit' && <PinSubmitModal />}
       {activeModal === 'pinDetail' && <PinDetailModal />}
       {activeModal === 'filter' && <FilterPanel />}
+      {activeModal === 'emailClaim' && <EmailClaimModal />}
     </>
   )
 }
