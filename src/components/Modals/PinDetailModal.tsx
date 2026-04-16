@@ -1,0 +1,92 @@
+// src/components/Modals/PinDetailModal.tsx
+import { useState } from 'react'
+import { usePinStore } from '../../store/usePinStore'
+import { useUIStore } from '../../store/useUIStore'
+import { formatRent, formatDaysAgo } from '../../utils/formatters'
+import styles from './PinDetailModal.module.css'
+
+export function PinDetailModal() {
+  const [reported, setReported] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  const selectedPin = useUIStore(s => s.selectedPin)
+  const closeModal = useUIStore(s => s.closeModal)
+  const reportPin = usePinStore(s => s.reportPin)
+
+  if (!selectedPin) return null
+
+  const pin = selectedPin
+
+  function handleReport() {
+    reportPin(pin.id)
+    setReported(true)
+    setTimeout(() => setReported(false), 2000)
+  }
+
+  async function handleShare() {
+    const url = `https://hyderabad.rent/#pin-${pin.id}`
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: 'hyderabad.rent', text: `₹${formatRent(pin.rent)} in ${pin.locality ?? 'Hyderabad'}`, url })
+      } else {
+        await navigator.clipboard.writeText(url)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      }
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') return
+      console.error('Share failed', err)
+    }
+  }
+
+  const furnishedLabel = pin.furnished === 'furnished' ? 'Furnished' : pin.furnished === 'semi' ? 'Semi-furnished' : 'Unfurnished'
+  const tenantLabel = pin.tenantType === 'family' ? 'Family' : pin.tenantType === 'bachelor' ? 'Bachelor' : 'Any tenant'
+
+  return (
+    <div className={styles.overlay}>
+      <div className={styles.card}>
+        <div className={styles.header}>
+          <div className={styles.rentBlock}>
+            <span className={styles.rent}>₹{formatRent(pin.rent)}</span>
+            <span className={styles.bhk}>{pin.bhk} BHK</span>
+          </div>
+          <div className={styles.headerRight}>
+            <span className={pin.available ? styles.badgeAvail : styles.badgeNA}>
+              {pin.available ? 'Available' : 'Not available'}
+            </span>
+            <button className={styles.closeBtn} onClick={closeModal} aria-label="Close">✕</button>
+          </div>
+        </div>
+
+        {pin.locality && (
+          <p className={styles.locality}>📍 {pin.locality}</p>
+        )}
+
+        <p className={styles.timestamp}>pinned {formatDaysAgo(pin.createdAt)}</p>
+
+        <div className={styles.tags}>
+          <span className={styles.tag}>{furnishedLabel}</span>
+          <span className={styles.tag}>{pin.gated ? 'Gated' : 'Open society'}</span>
+          <span className={styles.tag}>{pin.maintenance === 'included' ? 'Maintenance included' : 'Maintenance excluded'}</span>
+          <span className={styles.tag}>{tenantLabel}</span>
+          <span className={styles.tag}>{pin.pets ? 'Pets OK' : 'No pets'}</span>
+        </div>
+
+        <p className={styles.deposit}>Deposit: {pin.depositMonths} {pin.depositMonths === 1 ? 'month' : 'months'}</p>
+
+        <div className={styles.actions}>
+          <button className={styles.shareBtn} onClick={handleShare}>
+            {copied ? 'Copied! ✓' : 'Share ↗'}
+          </button>
+          <button
+            className={pin.reportCount >= 2 ? styles.reportBtnWarn : styles.reportBtn}
+            onClick={handleReport}
+            disabled={reported}
+          >
+            {reported ? 'Reported. Thanks.' : '🚩 Report'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
