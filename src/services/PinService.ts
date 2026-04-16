@@ -1,70 +1,92 @@
 // src/services/PinService.ts
-import { v4 as uuidv4 } from 'uuid'
-import { SEED_PINS } from '../data/seed-pins'
-import { inBounds } from '../utils/geo'
+import { supabase } from '../lib/supabase'
+import { getDeviceId } from '../lib/deviceId'
 import type { Pin, PinSubmission } from '../types/Pin'
 
-const STORAGE_KEY = 'hyd_pins'
-
-interface Bounds { north: number; south: number; east: number; west: number }
-
-function readStorage(): Pin[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? (JSON.parse(raw) as Pin[]) : []
-  } catch {
-    return []
+// Map DB snake_case row to TypeScript camelCase Pin
+function rowToPin(row: Record<string, unknown>): Pin {
+  return {
+    id:            row.id as string,
+    lat:           row.lat as number,
+    lng:           row.lng as number,
+    rent:          row.rent as number,
+    bhk:           row.bhk as Pin['bhk'],
+    furnished:     row.furnished as Pin['furnished'],
+    gated:         row.gated as boolean,
+    maintenance:   row.maintenance as Pin['maintenance'],
+    tenantType:    row.tenant_type as Pin['tenantType'],
+    depositMonths: row.deposit_months as number,
+    pets:          row.pets as boolean,
+    available:     row.available as boolean,
+    reportCount:   row.report_count as number,
+    createdAt:     row.created_at as string,
+    locality:      row.locality as string | undefined,
+    sqft:          row.sqft as number | undefined,
+    verified:      row.verified as boolean,
+    isSeed:        row.is_seed as boolean,
   }
 }
 
-function writeStorage(pins: Pin[]): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(pins))
-}
-
 export const PinService = {
-  getAllPins(): Pin[] {
-    const stored = readStorage()
-    // Seed pins are always present; user pins are layered on top
-    const userIds = new Set(stored.map(p => p.id))
-    const seedsNotOverridden = SEED_PINS.filter(p => !userIds.has(p.id))
-    return [...seedsNotOverridden, ...stored]
+  async getAllPins(): Promise<Pin[]> {
+    const { data, error } = await supabase
+      .from('pins')
+      .select('*')
+      .eq('available', true)
+    if (error) throw new Error(error.message)
+    return (data ?? []).map(rowToPin)
   },
 
-  getPinsInBounds(bounds: Bounds): Pin[] {
-    return this.getAllPins().filter(pin =>
-      inBounds({ lat: pin.lat, lng: pin.lng }, bounds),
-    )
-  },
+  async addPin(submission: PinSubmission): Promise<Pin> {
+    const deviceId = getDeviceId()
+    const { data: newId, error } = await supabase.rpc('add_pin', {
+      p_pin: {
+        lat:           submission.lat,
+        lng:           submission.lng,
+        rent:          submission.rent,
+        bhk:           submission.bhk,
+        furnished:     submission.furnished,
+        gated:         submission.gated,
+        maintenance:   submission.maintenance,
+        tenantType:    submission.tenantType,
+        depositMonths: submission.depositMonths,
+        pets:          submission.pets,
+        available:     submission.available,
+        locality:      submission.locality ?? '',
+      },
+      p_device_id: deviceId,
+    })
 
-  addPin(submission: PinSubmission): Pin {
-    const pin: Pin = {
-      ...submission,
-      id: uuidv4(),
-      reportCount: 0,
-      createdAt: new Date().toISOString(),
+    if (error) {
+      if (error.message.includes('RATE_LIMITED')) throw new Error('RATE_LIMITED')
+      if (error.message.includes('IMPLAUSIBLE_RENT')) throw new Error('IMPLAUSIBLE_RENT')
+      throw new Error(error.message)
     }
-    const stored = readStorage()
-    writeStorage([...stored, pin])
-    return pin
+
+    const { data: row, error: fetchError } = await supabase
+      .from('pins')
+      .select('*')
+      .eq('id', newId)
+      .single()
+    if (fetchError) throw new Error(fetchError.message)
+    return rowToPin(row)
   },
 
-  reportPin(id: string): void {
-    const stored = readStorage()
-    const allPins = this.getAllPins()
-    const pin = allPins.find(p => p.id === id)
-    if (!pin) return
-    const inStorage = stored.find(p => p.id === id)
-    if (inStorage) {
-      writeStorage(
-        stored.map(p => p.id === id ? { ...p, reportCount: p.reportCount + 1 } : p),
-      )
-    } else {
-      // Seed pin — pull into storage with incremented count
-      writeStorage([...stored, { ...pin, reportCount: 1 }])
-    }
+  async reportPin(id: string): Promise<void> {
+    const { error } = await supabase.rpc('report_pin', { p_pin_id: id })
+    if (error) throw new Error(error.message)
   },
 
-  getTotalRent(): number {
-    return this.getAllPins().reduce((sum, p) => sum + p.rent, 0)
+  async claimPin(id: string, email: string): Promise<void> {
+    const { error } = await supabase.rpc('claim_pin', {
+      p_pin_id: id,
+      p_email: email,
+    })
+    if (error) throw new Error(error.message)
+  },
+
+  async getTotalRent(): Promise<number> {
+    const pins = await this.getAllPins()
+    return pins.reduce((sum, p) => sum + p.rent, 0)
   },
 }
