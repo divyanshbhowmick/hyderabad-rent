@@ -6,7 +6,34 @@
       "Bash(git init *)",
       "Bash(git add *)",
       "Bash(git commit *)",
-      "Bash(npx vitest *)"
+      "Bash(npx vitest *)",
+      "Bash(npx tsc *)",
+      "Bash(npm list *)",
+      "Bash(ls /Users/divyansh/Dev/ai/hyderabad.rent/.env*)",
+      "Bash(ls /Users/divyansh/Dev/ai/hyderabad.rent/*.md)",
+      "Bash(ls /Users/divyansh/Dev/ai/hyderabad.rent/src/test-setup*)",
+      "Bash(gh auth *)",
+      "Bash(git remote *)",
+      "Bash(git push *)",
+      "WebSearch",
+      "Bash(git checkout *)",
+      "Bash(npm ls *)",
+      "Bash(git merge *)",
+      "Skill(qa)",
+      "Bash(top -l 1 -s 0)",
+      "Bash(export PATH=\"$HOME/.bun/bin:$PATH\")",
+      "Read(//Users/divyansh/.claude/skills/gstack/browse/**)",
+      "Bash(bun run *)",
+      "Read(//tmp/**)",
+      "Bash(export PATH=\"$HOME/.bun/bin:$PATH\" cd ~/.claude/skills/gstack/browse)",
+      "Bash(echo \"Server PID: $\\(bun run src/cli.ts status 2>&1)",
+      "Skill(update-config)",
+      "Bash(gh repo *)",
+      "Bash(gh api *)",
+      "WebFetch(domain:github.com)"
     ]
+  },
+  "enabledPlugins": {
+    "github@claude-plugins-official": true
   }
 }
