@@ -24,7 +24,7 @@ export function EmailClaimModal() {
 
   async function handleSubmit() {
     if (!pendingPinId || submitting) return
-    if (!email.includes('@')) {
+    if (!/^[^@]+@[^@]+\.[^@]+$/.test(email)) {
       setError('Please enter a valid email address')
       return
     }
