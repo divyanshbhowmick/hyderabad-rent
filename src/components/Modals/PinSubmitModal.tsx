@@ -28,7 +28,7 @@ const INITIAL: FormState = {
 export function PinSubmitModal() {
   const [form, setForm] = useState<FormState>(INITIAL)
   const [errors, setErrors] = useState<string[]>([])
-  const [success, setSuccess] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
@@ -39,6 +39,8 @@ export function PinSubmitModal() {
 
   const pendingLatLng = useUIStore(s => s.pendingLatLng)
   const closeModal = useUIStore(s => s.closeModal)
+  const openModal = useUIStore(s => s.openModal)
+  const setPendingPinId = useUIStore(s => s.setPendingPinId)
   const addPin = usePinStore(s => s.addPin)
 
   function validate(): string[] {
@@ -57,37 +59,41 @@ export function PinSubmitModal() {
     return errs
   }
 
-  function handleSubmit() {
-    if (!pendingLatLng) return
+  async function handleSubmit() {
+    if (!pendingLatLng || submitting) return
     const errs = validate()
     if (errs.length > 0) { setErrors(errs); return }
     setErrors([])
-    addPin({
-      lat: pendingLatLng.lat,
-      lng: pendingLatLng.lng,
-      rent: Number(form.rent),
-      bhk: form.bhk!,
-      furnished: form.furnished!,
-      gated: form.gated!,
-      maintenance: form.maintenance!,
-      tenantType: form.tenantType!,
-      depositMonths: Number(form.depositMonths),
-      pets: form.pets!,
-      available: form.available!,
-      locality: form.locality || undefined,
-    })
-    setSuccess(true)
-    timerRef.current = setTimeout(() => closeModal(), 1500)
-  }
-
-  if (success) {
-    return (
-      <div className={styles.overlay}>
-        <div className={styles.card}>
-          <p className={styles.successMsg}>Pin added! Thanks for contributing. 🙏</p>
-        </div>
-      </div>
-    )
+    setSubmitting(true)
+    try {
+      const pin = await addPin({
+        lat: pendingLatLng.lat,
+        lng: pendingLatLng.lng,
+        rent: Number(form.rent),
+        bhk: form.bhk!,
+        furnished: form.furnished!,
+        gated: form.gated!,
+        maintenance: form.maintenance!,
+        tenantType: form.tenantType!,
+        depositMonths: Number(form.depositMonths),
+        pets: form.pets!,
+        available: form.available!,
+        locality: form.locality || undefined,
+      })
+      setPendingPinId(pin.id)
+      openModal('emailClaim')
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : ''
+      if (msg.includes('RATE_LIMITED')) {
+        setErrors(["You've added 3 pins today — come back tomorrow!"])
+      } else if (msg.includes('IMPLAUSIBLE_RENT')) {
+        setErrors([`That rent looks off for a ${form.bhk}BHK in Hyderabad. Double-check?`])
+      } else {
+        setErrors(["Couldn't save your pin — check your connection and try again."])
+      }
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -251,7 +257,14 @@ export function PinSubmitModal() {
 
         <div className={styles.actions}>
           <button className={styles.cancelBtn} onClick={closeModal} type="button">Cancel</button>
-          <button className={styles.submitBtn} onClick={handleSubmit} type="button">Pin rent</button>
+          <button
+            className={styles.submitBtn}
+            onClick={handleSubmit}
+            type="button"
+            disabled={submitting}
+          >
+            {submitting ? 'Saving...' : 'Pin rent'}
+          </button>
         </div>
       </div>
     </div>
