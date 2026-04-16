@@ -6,22 +6,31 @@ import type { Pin, PinSubmission } from '../types/Pin'
 interface PinStore {
   pins: Pin[]
   totalRent: number
-  loadPins: () => void
-  addPin: (submission: PinSubmission) => Pin
-  reportPin: (id: string) => void
+  loading: boolean
+  loadPins: () => Promise<void>
+  addPin: (submission: PinSubmission) => Promise<Pin>
+  reportPin: (id: string) => Promise<void>
 }
 
 export const usePinStore = create<PinStore>((set) => ({
   pins: [],
   totalRent: 0,
+  loading: false,
 
-  loadPins() {
-    const pins = PinService.getAllPins()
-    set({ pins, totalRent: PinService.getTotalRent() })
+  async loadPins() {
+    set({ loading: true })
+    try {
+      const pins = await PinService.getAllPins()
+      const totalRent = pins.reduce((sum, p) => sum + p.rent, 0)
+      set({ pins, totalRent, loading: false })
+    } catch (err) {
+      console.error('loadPins failed:', err)
+      set({ loading: false })
+    }
   },
 
-  addPin(submission) {
-    const pin = PinService.addPin(submission)
+  async addPin(submission) {
+    const pin = await PinService.addPin(submission)
     set(state => ({
       pins: [...state.pins, pin],
       totalRent: state.totalRent + pin.rent,
@@ -29,8 +38,8 @@ export const usePinStore = create<PinStore>((set) => ({
     return pin
   },
 
-  reportPin(id) {
-    PinService.reportPin(id)
+  async reportPin(id) {
+    await PinService.reportPin(id)
     set(state => ({
       pins: state.pins.map(p =>
         p.id === id ? { ...p, reportCount: p.reportCount + 1 } : p,
