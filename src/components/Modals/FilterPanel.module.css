@@ -79,7 +79,7 @@
 
 .rentField { display: flex; flex-direction: column; gap: 4px; flex: 1; }
 
-.rentFieldLabel { font-size: 11px; color: var(--text-dim); }
+.rentFieldLabel { display: block; font-size: 11px; color: var(--text-dim); }
 
 .rentInput {
   background: var(--surface-2); border: 1px solid var(--border);

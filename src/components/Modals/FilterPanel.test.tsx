@@ -62,4 +62,20 @@ describe('FilterPanel', () => {
     fireEvent.click(screen.getByText('Apply filters'))
     expect(useUIStore.getState().activeModal).toBeNull()
   })
+
+  it('updates rentMin and rentMax via inputs', () => {
+    render(<FilterPanel />)
+    fireEvent.change(screen.getByLabelText('Min'), { target: { value: '10000' } })
+    expect(useFilterStore.getState().filters.rentMin).toBe(10000)
+    fireEvent.change(screen.getByLabelText('Max'), { target: { value: '80000' } })
+    expect(useFilterStore.getState().filters.rentMax).toBe(80000)
+  })
+
+  it('clamps rentMin to not exceed rentMax', () => {
+    useFilterStore.setState({ filters: { ...DEFAULT_FILTERS, rentMax: 20000 } })
+    render(<FilterPanel />)
+    fireEvent.change(screen.getByLabelText('Min'), { target: { value: '50000' } })
+    const { rentMin, rentMax } = useFilterStore.getState().filters
+    expect(rentMin).toBeLessThanOrEqual(rentMax)
+  })
 })

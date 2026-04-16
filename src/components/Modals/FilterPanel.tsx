@@ -72,26 +72,34 @@ export function FilterPanel() {
           <label className={styles.sectionLabel}>Rent range</label>
           <div className={styles.rentInputs}>
             <div className={styles.rentField}>
-              <span className={styles.rentFieldLabel}>Min</span>
+              <label htmlFor="filter-rent-min" className={styles.rentFieldLabel}>Min</label>
               <input
+                id="filter-rent-min"
                 className={styles.rentInput}
                 type="number"
                 value={filters.rentMin}
                 min={1000}
                 max={filters.rentMax}
-                onChange={e => setFilter('rentMin', Number(e.target.value))}
+                onChange={e => {
+                  const v = Math.max(1000, Number(e.target.value))
+                  setFilter('rentMin', Math.min(v, filters.rentMax))
+                }}
               />
             </div>
             <span className={styles.rentSep}>—</span>
             <div className={styles.rentField}>
-              <span className={styles.rentFieldLabel}>Max</span>
+              <label htmlFor="filter-rent-max" className={styles.rentFieldLabel}>Max</label>
               <input
+                id="filter-rent-max"
                 className={styles.rentInput}
                 type="number"
                 value={filters.rentMax}
                 min={filters.rentMin}
                 max={500000}
-                onChange={e => setFilter('rentMax', Number(e.target.value))}
+                onChange={e => {
+                  const v = Math.max(1000, Number(e.target.value))
+                  setFilter('rentMax', Math.max(v, filters.rentMin))
+                }}
               />
             </div>
           </div>
