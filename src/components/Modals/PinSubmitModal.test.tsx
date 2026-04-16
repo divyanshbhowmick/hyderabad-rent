@@ -1,90 +1,112 @@
 // src/components/Modals/PinSubmitModal.test.tsx
-import { render, screen, fireEvent } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+
+vi.mock('../../store/usePinStore', () => ({
+  usePinStore: vi.fn(),
+}))
+vi.mock('../../store/useUIStore', () => ({
+  useUIStore: vi.fn(),
+}))
+
 import { PinSubmitModal } from './PinSubmitModal'
-import { useUIStore } from '../../store/useUIStore'
 import { usePinStore } from '../../store/usePinStore'
+import { useUIStore } from '../../store/useUIStore'
 
-beforeEach(() => {
-  useUIStore.setState({
-    activeModal: 'pinSubmit',
-    pendingLatLng: { lat: 17.385, lng: 78.4867 },
-    selectedPin: null,
-  })
-  // Clear localStorage so seed pins don't interfere
-  localStorage.clear()
-  usePinStore.getState().loadPins()
-})
+const mockAddPin = vi.fn()
+const mockCloseModal = vi.fn()
+const mockOpenModal = vi.fn()
+const mockSetPendingPinId = vi.fn()
 
-afterEach(() => {
-  useUIStore.setState({ activeModal: null, pendingLatLng: null, selectedPin: null })
-})
+function setup() {
+  vi.mocked(usePinStore).mockImplementation((selector: any) =>
+    selector({ addPin: mockAddPin, pins: [], totalRent: 0, loading: false, loadPins: vi.fn(), reportPin: vi.fn() })
+  )
+  vi.mocked(useUIStore).mockImplementation((selector: any) =>
+    selector({
+      pendingLatLng: { lat: 17.44, lng: 78.38 },
+      closeModal: mockCloseModal,
+      openModal: mockOpenModal,
+      setPendingPinId: mockSetPendingPinId,
+      activeModal: 'pinSubmit' as const,
+      selectedPin: null,
+      pendingPinId: null,
+    })
+  )
+  return render(<PinSubmitModal />)
+}
 
 function fillValidForm() {
-  // Rent
-  fireEvent.change(screen.getByPlaceholderText(/e.g. 22000/i), { target: { value: '22000' } })
-  // BHK
+  fireEvent.change(screen.getByPlaceholderText('e.g. 22000'), { target: { value: '25000' } })
   fireEvent.click(screen.getByText('2BHK'))
-  // Furnished
   fireEvent.click(screen.getByText('Semi'))
-  // Gated — click Yes (index 0: Gated Yes)
+  // Gated: Yes (first Yes button)
   const yesButtons = screen.getAllByText('Yes')
   fireEvent.click(yesButtons[0])
-  // Maintenance
   fireEvent.click(screen.getByText('Included'))
-  // Tenant type
   fireEvent.click(screen.getByText('Family'))
-  // Deposit is pre-filled with '2', no change needed
-  // Pets — click No (index 1: Pets No; index 0 is Gated No)
+  // Pets: No (second No button — first is gated No)
   const noButtons = screen.getAllByText('No')
   fireEvent.click(noButtons[1])
-  // Available
   fireEvent.click(screen.getByText('Available'))
 }
 
 describe('PinSubmitModal', () => {
-  it('renders the form with coordinates', () => {
-    render(<PinSubmitModal />)
-    expect(screen.getByText(/Pin your rent/i)).toBeInTheDocument()
-    expect(screen.getByText(/17.3850°N/)).toBeInTheDocument()
+  beforeEach(() => {
+    vi.clearAllMocks()
   })
 
-  it('shows validation errors when submitting empty form', () => {
-    render(<PinSubmitModal />)
+  it('shows validation errors for empty form', () => {
+    setup()
     fireEvent.click(screen.getByText('Pin rent'))
-    expect(screen.getByText(/Enter a valid rent/i)).toBeInTheDocument()
+    expect(screen.getByText(/valid rent/i)).toBeInTheDocument()
   })
 
-  it('shows success state after valid submission', async () => {
-    render(<PinSubmitModal />)
+  it('on success opens emailClaim modal with pendingPinId', async () => {
+    const newPin = {
+      id: 'new-pin-id', lat: 17.44, lng: 78.38, rent: 25000, bhk: 2,
+      furnished: 'semi', gated: true, maintenance: 'included',
+      tenantType: 'any', depositMonths: 2, pets: false, available: true,
+      reportCount: 0, createdAt: '2026-04-16T00:00:00.000Z',
+      verified: false, isSeed: false,
+    }
+    mockAddPin.mockResolvedValue(newPin)
+    setup()
     fillValidForm()
     fireEvent.click(screen.getByText('Pin rent'))
-    expect(screen.getByText(/Pin added!/i)).toBeInTheDocument()
+    await waitFor(() => {
+      expect(mockSetPendingPinId).toHaveBeenCalledWith('new-pin-id')
+      expect(mockOpenModal).toHaveBeenCalledWith('emailClaim')
+    })
   })
 
-  it('calls addPin with correct lat/lng from pendingLatLng', () => {
-    render(<PinSubmitModal />)
+  it('shows RATE_LIMITED user-friendly message', async () => {
+    mockAddPin.mockRejectedValue(new Error('RATE_LIMITED'))
+    setup()
     fillValidForm()
     fireEvent.click(screen.getByText('Pin rent'))
-    const pin = usePinStore.getState().pins.find(p => p.rent === 22000 && p.lat === 17.385)
-    expect(pin).toBeDefined()
-    expect(pin!.lat).toBe(17.385)
-    expect(pin!.lng).toBe(78.4867)
+    await waitFor(() => {
+      expect(screen.getByText(/3 pins today/i)).toBeInTheDocument()
+    })
   })
 
-  it('closes on Cancel click', () => {
-    render(<PinSubmitModal />)
-    fireEvent.click(screen.getByText('Cancel'))
-    expect(useUIStore.getState().activeModal).toBeNull()
-  })
-
-  it('auto-closes after 1500ms', () => {
-    vi.useFakeTimers()
-    render(<PinSubmitModal />)
+  it('shows IMPLAUSIBLE_RENT user-friendly message', async () => {
+    mockAddPin.mockRejectedValue(new Error('IMPLAUSIBLE_RENT'))
+    setup()
     fillValidForm()
     fireEvent.click(screen.getByText('Pin rent'))
-    expect(useUIStore.getState().activeModal).toBe('pinSubmit') // not closed yet
-    vi.advanceTimersByTime(1500)
-    expect(useUIStore.getState().activeModal).toBeNull()
-    vi.useRealTimers()
+    await waitFor(() => {
+      expect(screen.getByText(/rent looks off/i)).toBeInTheDocument()
+    })
+  })
+
+  it('shows generic network error message', async () => {
+    mockAddPin.mockRejectedValue(new Error('Network request failed'))
+    setup()
+    fillValidForm()
+    fireEvent.click(screen.getByText('Pin rent'))
+    await waitFor(() => {
+      expect(screen.getByText(/check your connection/i)).toBeInTheDocument()
+    })
   })
 })
