@@ -1,6 +1,7 @@
 // src/components/Modals/EmailClaimModal.tsx
 import { useState, useRef, useEffect } from 'react'
 import { useUIStore } from '../../store/useUIStore'
+import { usePinStore } from '../../store/usePinStore'
 import { PinService } from '../../services/PinService'
 import styles from './EmailClaimModal.module.css'
 
@@ -13,6 +14,7 @@ export function EmailClaimModal() {
 
   const pendingPinId = useUIStore(s => s.pendingPinId)
   const closeModal = useUIStore(s => s.closeModal)
+  const verifyPin = usePinStore(s => s.verifyPin)
 
   useEffect(() => {
     return () => {
@@ -30,6 +32,7 @@ export function EmailClaimModal() {
     setSubmitting(true)
     try {
       await PinService.claimPin(pendingPinId, email)
+      verifyPin(pendingPinId)
       setSuccess(true)
       timerRef.current = setTimeout(() => closeModal(), 1500)
     } catch {

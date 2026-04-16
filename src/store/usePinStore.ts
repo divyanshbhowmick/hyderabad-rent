@@ -10,6 +10,7 @@ interface PinStore {
   loadPins: () => Promise<void>
   addPin: (submission: PinSubmission) => Promise<Pin>
   reportPin: (id: string) => Promise<void>
+  verifyPin: (id: string) => void
 }
 
 export const usePinStore = create<PinStore>((set) => ({
@@ -44,6 +45,12 @@ export const usePinStore = create<PinStore>((set) => ({
       pins: state.pins.map(p =>
         p.id === id ? { ...p, reportCount: p.reportCount + 1 } : p,
       ),
+    }))
+  },
+
+  verifyPin(id) {
+    set(state => ({
+      pins: state.pins.map(p => p.id === id ? { ...p, verified: true } : p),
     }))
   },
 }))
