@@ -30,7 +30,7 @@ export function OnboardingModal() {
   }
 
   async function handleShare() {
-    const url = 'https://hyderabad.rent'
+    const url = 'https://hyd.rentals'
     try {
       if (navigator.share) {
         await navigator.share({ title: 'hyderabad.rent', url })

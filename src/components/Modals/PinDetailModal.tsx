@@ -41,7 +41,7 @@ export function PinDetailModal() {
   }
 
   async function handleShare() {
-    const url = `https://hyderabad.rent/#pin-${pin.id}`
+    const url = `https://hyd.rentals/#pin-${pin.id}`
     try {
       if (navigator.share) {
         await navigator.share({ title: 'hyderabad.rent', text: `₹${formatRent(pin.rent)} in ${pin.locality ?? 'Hyderabad'}`, url })
