@@ -36,7 +36,16 @@ describe('formatTotal', () => {
   it('formats crores with one decimal', () => {
     expect(formatTotal(18260000)).toBe('₹1.8 Cr.')
   })
-  it('formats zero as 0 Cr.', () => {
-    expect(formatTotal(0)).toBe('₹0 Cr.')
+  it('formats exact crore', () => {
+    expect(formatTotal(10000000)).toBe('₹1 Cr.')
+  })
+  it('formats sub-crore as lakhs', () => {
+    expect(formatTotal(750000)).toBe('₹7.5L')
+  })
+  it('formats exact lakh', () => {
+    expect(formatTotal(100000)).toBe('₹1L')
+  })
+  it('formats zero as 0L', () => {
+    expect(formatTotal(0)).toBe('₹0L')
   })
 })

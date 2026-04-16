@@ -19,6 +19,10 @@ export function formatDaysAgo(isoString: string): string {
 }
 
 export function formatTotal(totalRent: number): string {
-  const cr = totalRent / 10000000
-  return `₹${cr % 1 === 0 ? cr : cr.toFixed(1)} Cr.`
+  if (totalRent >= 10000000) {
+    const cr = totalRent / 10000000
+    return `₹${cr % 1 === 0 ? cr : cr.toFixed(1)} Cr.`
+  }
+  const l = totalRent / 100000
+  return `₹${l % 1 === 0 ? l : l.toFixed(1)}L`
 }
