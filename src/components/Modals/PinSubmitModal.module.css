@@ -178,8 +178,13 @@
   transition: background var(--transition);
 }
 
-.submitBtn:hover {
+.submitBtn:hover:not(:disabled) {
   background: var(--accent-dark);
+}
+
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .successMsg {
