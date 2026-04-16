@@ -5,6 +5,7 @@ import { usePinStore } from '../store/usePinStore'
 import { useFilterStore } from '../store/useFilterStore'
 import { useUIStore } from '../store/useUIStore'
 import { createPinElement } from '../components/Map/PinMarker'
+import { applyFilters } from '../utils/pinFilter'
 
 // Module-level map registry for GPS access from App.tsx
 let _mapInstance: mapboxgl.Map | null = null
@@ -21,15 +22,7 @@ export function useMap(containerRef: React.RefObject<HTMLDivElement>, token: str
   const setSelectedPin = useUIStore(s => s.setSelectedPin)
 
   // Filter pins
-  const visiblePins = useMemo(() => pins.filter(pin => {
-    if (pin.reportCount >= 3) return false
-    if (filters.locality !== null && pin.locality !== filters.locality) return false
-    if (filters.bhk.length > 0 && !filters.bhk.includes(pin.bhk)) return false
-    if (pin.rent < filters.rentMin || pin.rent > filters.rentMax) return false
-    if (filters.furnished.length > 0 && !filters.furnished.includes(pin.furnished)) return false
-    if (filters.gated !== null && pin.gated !== filters.gated) return false
-    return true
-  }), [pins, filters])
+  const visiblePins = useMemo(() => applyFilters(pins, filters), [pins, filters])
 
   // Initialize map
   useEffect(() => {

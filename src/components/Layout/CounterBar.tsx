@@ -1,11 +1,16 @@
 // src/components/Layout/CounterBar.tsx
+import { useMemo } from 'react'
 import styles from './CounterBar.module.css'
 import { usePinStore } from '../../store/usePinStore'
+import { useFilterStore } from '../../store/useFilterStore'
 import { formatTotal } from '../../utils/formatters'
+import { applyFilters } from '../../utils/pinFilter'
 
 export function CounterBar() {
-  const pins = usePinStore(s => s.pins)
-  const totalRent = usePinStore(s => s.totalRent)
+  const allPins = usePinStore(s => s.pins)
+  const filters = useFilterStore(s => s.filters)
+  const pins = useMemo(() => applyFilters(allPins, filters), [allPins, filters])
+  const totalRent = pins.reduce((sum, p) => sum + p.rent, 0)
 
   return (
     <div className={styles.counterBar}>

@@ -23,10 +23,13 @@ export function PinDetailModal() {
   const selectedPin = useUIStore(s => s.selectedPin)
   const closeModal = useUIStore(s => s.closeModal)
   const reportPin = usePinStore(s => s.reportPin)
-
-  if (!selectedPin) return null
-
+  const livePins = usePinStore(s => s.pins)
+  // Use live pin data so reportCount stays current after reporting
   const pin = selectedPin
+    ? (livePins.find(p => p.id === selectedPin.id) ?? selectedPin)
+    : null
+
+  if (!pin) return null
 
   function handleReport() {
     if (hasReportedRef.current) return

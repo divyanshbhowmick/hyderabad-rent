@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useUIStore } from '../../store/useUIStore'
 import styles from './OnboardingModal.module.css'
 
@@ -7,7 +7,14 @@ const ONBOARDED_KEY = 'hyd_onboarded'
 export function OnboardingModal() {
   const [step, setStep] = useState(1)
   const [copied, setCopied] = useState(false)
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const closeModal = useUIStore(s => s.closeModal)
+
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current)
+    }
+  }, [])
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -30,7 +37,7 @@ export function OnboardingModal() {
       } else {
         await navigator.clipboard.writeText(url)
         setCopied(true)
-        setTimeout(() => setCopied(false), 2000)
+        copyTimerRef.current = setTimeout(() => setCopied(false), 2000)
       }
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') return
