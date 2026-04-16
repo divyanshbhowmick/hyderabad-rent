@@ -22,6 +22,12 @@ export function PinDetailModal() {
 
   const selectedPin = useUIStore(s => s.selectedPin)
   const closeModal = useUIStore(s => s.closeModal)
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') closeModal() }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [closeModal])
   const reportPin = usePinStore(s => s.reportPin)
   const livePins = usePinStore(s => s.pins)
 

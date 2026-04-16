@@ -17,6 +17,12 @@ export function EmailClaimModal() {
   const verifyPin = usePinStore(s => s.verifyPin)
 
   useEffect(() => {
+    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') closeModal() }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [closeModal])
+
+  useEffect(() => {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current)
     }

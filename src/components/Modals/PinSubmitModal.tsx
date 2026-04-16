@@ -43,6 +43,12 @@ export function PinSubmitModal() {
   const setPendingPinId = useUIStore(s => s.setPendingPinId)
   const addPin = usePinStore(s => s.addPin)
 
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') closeModal() }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [closeModal])
+
   function validate(): string[] {
     const errs: string[] = []
     const rent = Number(form.rent)

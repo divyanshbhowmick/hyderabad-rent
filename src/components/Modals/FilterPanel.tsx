@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useFilterStore } from '../../store/useFilterStore'
 import { useUIStore } from '../../store/useUIStore'
 import { LOCALITIES } from '../../data/localities'
@@ -9,6 +10,12 @@ export function FilterPanel() {
   const setFilter = useFilterStore(s => s.setFilter)
   const clearFilters = useFilterStore(s => s.clearFilters)
   const closeModal = useUIStore(s => s.closeModal)
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') closeModal() }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [closeModal])
 
   function toggleBHK(n: BHK) {
     const next = filters.bhk.includes(n)
