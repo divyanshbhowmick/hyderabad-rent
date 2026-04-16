@@ -51,6 +51,10 @@ export function useMap(containerRef: React.RefObject<HTMLDivElement>, token: str
       openModal('pinSubmit')
     })
 
+    // Assign to module-level registry for GPS access from App.tsx.
+    // In React Strict Mode, effects run twice (mount → unmount → mount).
+    // The second assignment is the one that sticks; getMap() may briefly
+    // return null between the two mounts during development hot-reloads.
     _mapInstance = map
     mapRef.current = map
 

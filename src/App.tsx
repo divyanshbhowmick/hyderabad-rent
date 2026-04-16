@@ -12,7 +12,10 @@ import { PinDetailModal } from './components/Modals/PinDetailModal'
 import { FilterPanel } from './components/Modals/FilterPanel'
 import { getMap } from './hooks/useMap'
 
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
+if (!MAPBOX_TOKEN) {
+  throw new Error('VITE_MAPBOX_TOKEN is not set — copy .env.example to .env.local and add your token')
+}
 
 export default function App() {
   const activeModal = useUIStore(s => s.activeModal)
