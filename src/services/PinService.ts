@@ -32,7 +32,7 @@ export const PinService = {
     const { data, error } = await supabase
       .from('pins')
       .select('*')
-      .eq('available', true)
+      .lt('report_count', 3)
     if (error) throw new Error(error.message)
     return (data ?? []).map(rowToPin)
   },

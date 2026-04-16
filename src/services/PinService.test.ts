@@ -45,7 +45,7 @@ describe('PinService', () => {
   it('getAllPins maps snake_case rows to camelCase Pin objects', async () => {
     vi.mocked(supabase.from).mockReturnValue({
       select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue({ data: [mockRow], error: null }),
+        lt: vi.fn().mockResolvedValue({ data: [mockRow], error: null }),
       }),
     } as any)
 
