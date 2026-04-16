@@ -2,6 +2,7 @@
 import { useEffect } from 'react'
 import { useUIStore } from './store/useUIStore'
 import { MapContainer } from './components/Map/MapContainer'
+import { MapErrorBoundary } from './components/Map/MapErrorBoundary'
 import { TopBar } from './components/Layout/TopBar'
 import { CounterBar } from './components/Layout/CounterBar'
 import { BottomCTA } from './components/Layout/BottomCTA'
@@ -46,7 +47,9 @@ export default function App() {
 
   return (
     <>
-      <MapContainer token={MAPBOX_TOKEN} />
+      <MapErrorBoundary>
+        <MapContainer token={MAPBOX_TOKEN} />
+      </MapErrorBoundary>
       <TopBar />
       <CounterBar />
       <RightPanel />
