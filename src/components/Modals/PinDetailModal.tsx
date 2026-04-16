@@ -1,5 +1,5 @@
 // src/components/Modals/PinDetailModal.tsx
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { usePinStore } from '../../store/usePinStore'
 import { useUIStore } from '../../store/useUIStore'
 import { formatRent, formatDaysAgo } from '../../utils/formatters'
@@ -8,6 +8,17 @@ import styles from './PinDetailModal.module.css'
 export function PinDetailModal() {
   const [reported, setReported] = useState(false)
   const [copied, setCopied] = useState(false)
+
+  const reportTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const hasReportedRef = useRef(false)
+
+  useEffect(() => {
+    return () => {
+      if (reportTimerRef.current) clearTimeout(reportTimerRef.current)
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current)
+    }
+  }, [])
 
   const selectedPin = useUIStore(s => s.selectedPin)
   const closeModal = useUIStore(s => s.closeModal)
@@ -18,9 +29,11 @@ export function PinDetailModal() {
   const pin = selectedPin
 
   function handleReport() {
+    if (hasReportedRef.current) return
+    hasReportedRef.current = true
     reportPin(pin.id)
     setReported(true)
-    setTimeout(() => setReported(false), 2000)
+    reportTimerRef.current = setTimeout(() => setReported(false), 2000)
   }
 
   async function handleShare() {
@@ -31,7 +44,7 @@ export function PinDetailModal() {
       } else {
         await navigator.clipboard.writeText(url)
         setCopied(true)
-        setTimeout(() => setCopied(false), 2000)
+        copyTimerRef.current = setTimeout(() => setCopied(false), 2000)
       }
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') return
