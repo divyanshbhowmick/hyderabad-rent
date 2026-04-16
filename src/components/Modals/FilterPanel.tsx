@@ -1,7 +1,6 @@
 import { useFilterStore } from '../../store/useFilterStore'
 import { useUIStore } from '../../store/useUIStore'
 import { LOCALITIES } from '../../data/localities'
-import { DEFAULT_FILTERS } from '../../types/Pin'
 import type { BHK, Furnished } from '../../types/Pin'
 import styles from './FilterPanel.module.css'
 

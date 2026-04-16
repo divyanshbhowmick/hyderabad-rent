@@ -1,5 +1,6 @@
 // src/components/Map/MapContainer.tsx
 import { useRef, useEffect } from 'react'
+// mapRef returned by useMap is not needed here; GPS access goes through getMap() in App.tsx
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { useMap } from '../../hooks/useMap'
 import { usePinStore } from '../../store/usePinStore'
@@ -11,7 +12,7 @@ interface MapContainerProps {
 
 export function MapContainer({ token }: MapContainerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const mapRef = useMap(containerRef, token)
+  useMap(containerRef, token)
   const loadPins = usePinStore(s => s.loadPins)
 
   useEffect(() => {

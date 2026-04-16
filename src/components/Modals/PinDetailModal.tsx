@@ -24,12 +24,13 @@ export function PinDetailModal() {
   const closeModal = useUIStore(s => s.closeModal)
   const reportPin = usePinStore(s => s.reportPin)
   const livePins = usePinStore(s => s.pins)
-  // Use live pin data so reportCount stays current after reporting
-  const pin = selectedPin
-    ? (livePins.find(p => p.id === selectedPin.id) ?? selectedPin)
-    : null
 
-  if (!pin) return null
+  if (!selectedPin) return null
+
+  // Use live pin data so reportCount stays current after reporting.
+  // Guard selectedPin above first so `pin` is typed as Pin (not Pin | null),
+  // which lets TypeScript narrow correctly inside inner function closures.
+  const pin = livePins.find(p => p.id === selectedPin.id) ?? selectedPin
 
   function handleReport() {
     if (hasReportedRef.current) return
